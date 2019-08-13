@@ -1,5 +1,4 @@
-# Prototyping-GIVENRA
-RPG Sheet Tracker
+# RPG Sheet Tracker
 
 ‘Dungeons and Dragons’ style role playing games are fun and engage the imagination. They also
 require users to keep track of a constantly changing series of statistics, items and points. It would be
