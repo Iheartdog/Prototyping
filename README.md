@@ -4,7 +4,8 @@ Recommender systems are most commonly recognised as playlist generators for vide
 
 “In October, 2006 Netflix released a dataset containing 100 million anonymous movie ratings and challenged the data mining, machine learning and computer science communities to develop systems that could beat the accuracy of its recommendation system, Cinematch (Bennett & Lanning, 2007).
 
- Given a dataset of movies, users and their ratings, you are to create a recommender system. 
+Given a dataset of movies, users and their ratings, you are to create a recommender system. 
+
 You must: 
 •	Search for a movie 
 •	Rate a movie 
