@@ -1,13 +1,14 @@
-# RPG Sheet Tracker
+# Movie Rating System
 
-‘Dungeons and Dragons’ style role playing games are fun and engage the imagination. They also
-require users to keep track of a constantly changing series of statistics, items and points. It would be
-helpful if there was a simple interface that could record a character’s statistics, abilities and
-inventory. It would also be helpful if this could be updated easily as the game progresses.
-Data
-There may be several characters. Each character will have the following statistics:
-Health, Strength, Agility, Intelligence, Up to three special abilities, Up to five items in inventory,
-One item in hand, Gold
-You must:
-Set each character a class and a name, Be able to set statistics and items, Be able to update statistics and items,
-Be able to show all details, statistics and items for the characters
+Recommender systems are most commonly recognised as playlist generators for video and music services like Netflix, YouTube and Spotify, product recommenders for services such as Amazon, or content recommenders for social media platforms such as Facebook and Twitter. 
+
+“In October, 2006 Netflix released a dataset containing 100 million anonymous movie ratings and challenged the data mining, machine learning and computer science communities to develop systems that could beat the accuracy of its recommendation system, Cinematch (Bennett & Lanning, 2007).
+
+ Given a dataset of movies, users and their ratings, you are to create a recommender system. 
+You must: 
+•	Search for a movie 
+•	Rate a movie 
+•	Recommend a movie specific to the user based on their rating 
+•	Have a GUI 
+•	Use persistent storage (i.e. store the data in a file)
+
