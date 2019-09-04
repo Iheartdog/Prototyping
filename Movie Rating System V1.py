@@ -2,7 +2,7 @@
 Movie Rating System V1.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 03/09/2019
+Last Edited: 04/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 
@@ -78,18 +78,11 @@ def import_movies():
         
         for row in csv_reader:
             if line_count == 0: #Header row
-                print('Column names are {}'.format(", ".join(row)))
                 line_count += 1
             else:
                 line_count += 1
                 
                 Movies(row[0], row[1], row[2], row[3])
-                id = row[0]
-                title = row[1]
-                year = row[2]
-                genres = row[3]
-                
-                print("\tMovieId: {} Title: {} Year: {} Genres: {}".format(id, title, year, genres))
 
 def import_ratings(LIKED_RATING):
     """
@@ -102,7 +95,6 @@ def import_ratings(LIKED_RATING):
 
         for row in csv_reader:
             if line_count == 0: #Header row
-                print('Column names are {}'.format(", ".join(row)))
                 line_count += 1
             else:
                 line_count += 1
@@ -252,7 +244,41 @@ def return_unrated(CURRENT_USER):
     """
     # Create a lsit to store unrated movies
     unrated_movies_ids = []
-    for user in 
+    for user in find_similar_users(CURRENT_USER):
+        movies = user_movies(user)-user_movies(CURRENT_USER)
+
+    for movie in movies:
+        if movie not in unrated_movies_ids:
+            unrated_movies_ids.append(movie)
+
+    return unrated_movies_ids
+
+def unrated_movie_possibilities(CURRENT_USER):
+    """
+    Store all items the user has not rated with possibility index
+    and return dictionary
+    """
+    # Compute possibilities of a user liking a movie
+    recommended_movies = {}
+
+    for unrated in return_unrated(CURRENT_USER):
+        possibility_index = possibility_index(CURRENT_USER, unrated)
+        recommended_movies.update(unrated.id, possibility_index)
+
+    return recommended_movies
+
+def generate_recommendations(CURRENT_USER, num_recommendations):
+    """
+    Generate movie recommendations
+    """
+    # Get dictionary of unrated movies to be recommended
+    recommended_movies = unrated_movie_possibilities(CURRENT_USER)
+
+    movie_count = 0
+    movies_sorted = sorted(recommended_movies.items(), key=lambda x:x[1])
+
+    print("**Recommended Movies**")
+    
 
 if __name__ == "__main__":
     LIKED_RATING = "4" # Movies rated this score and above are liked
@@ -265,7 +291,7 @@ if __name__ == "__main__":
     import_ratings(LIKED_RATING)
 
     # Set the current user and number of recommendations
-    current_user_id = '1'
+    current_user_id = '5'
     num_of_recommendations = 4
 
     # Store current user instance
