@@ -2,7 +2,7 @@
 Movie Rating System V1.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 04/09/2019
+Last Edited: 06/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 
@@ -211,7 +211,7 @@ def similarity_index(CURRENT_USER, user):
 
     return similarity_value
 
-def possibility_index(CURRENT_USER, movie):
+def possibility_index_func(CURRENT_USER, movie):
     """
     Given a user and an unrated movie
     Find all users who have rated the movie
@@ -220,18 +220,18 @@ def possibility_index(CURRENT_USER, movie):
 
     # Finds the sum of the similarity indicies of all users who like a movie
     similarity_sum_liked = 0
-    for user in return_user_liked(movie):
+    for user in return_users_liked(movie):
         if user.id != CURRENT_USER.id:
-            similarity_sum += similarity_index(CURRENT_USER, user)
+            similarity_sum_liked += similarity_index(CURRENT_USER, user)
 
     # Finds the sum of the similarity indicies of all users who dislike a movie
     similarity_sum_disliked = 0
-    for user in return_user_disliked(movie):
+    for user in return_users_disliked(movie):
         if user.id != CURRENT_USER.id:
             similarity_sum_disliked += similarity_index(CURRENT_USER, user)
 
     #Caluculate and return the possibility of the user liking a movie
-    possibilty_index = ((similarity_sum_liked - similarity_sum_disliked)/(
+    possibility_index = ((similarity_sum_liked - similarity_sum_disliked)/(
                         len(return_users_liked(movie)) + len(return_users_disliked(movie))))
 
     return possibility_index
@@ -262,24 +262,28 @@ def unrated_movie_possibilities(CURRENT_USER):
     recommended_movies = {}
 
     for unrated in return_unrated(CURRENT_USER):
-        possibility_index = possibility_index(CURRENT_USER, unrated)
-        recommended_movies.update(unrated.id, possibility_index)
+        possibility_index = possibility_index_func(CURRENT_USER, unrated)
+        recommended_movies.update({unrated : possibility_index})
 
     return recommended_movies
 
-def generate_recommendations(CURRENT_USER, num_recommendations):
+def generate_recommendations(CURRENT_USER, num_of_recommendations):
     """
     Generate movie recommendations
     """
     # Get dictionary of unrated movies to be recommended
     recommended_movies = unrated_movie_possibilities(CURRENT_USER)
 
-    movie_count = 0
-    movies_sorted = sorted(recommended_movies.items(), key=lambda x:x[1])
+    movie_counter = 0
 
     print("**Recommended Movies**")
-    
-
+    for key,value in sorted(recommended_movies.items(), key=lambda x:x[1], reverse = True):
+        if movie_counter <= num_of_recommendations:
+            for movie in movies:
+                if key == movie.id:
+                    print("Movie : {} \nPossibility Liked : {} \n".format(movie.title,value))
+                    movie_counter +=1
+        
 if __name__ == "__main__":
     LIKED_RATING = "4" # Movies rated this score and above are liked
     movies = [] # List of all Movies
@@ -291,7 +295,7 @@ if __name__ == "__main__":
     import_ratings(LIKED_RATING)
 
     # Set the current user and number of recommendations
-    current_user_id = '5'
+    current_user_id = '7'
     num_of_recommendations = 4
 
     # Store current user instance
@@ -300,7 +304,8 @@ if __name__ == "__main__":
     #Find all the users who have rated the movies watched by current user
     similar_users = find_similar_users(CURRENT_USER)
     
-
+    # Generate recommended movies
+    generate_recommendations(CURRENT_USER, num_of_recommendations)
 
 
             
