@@ -2,7 +2,7 @@
 Movie Rating System V2.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 10/09/2019
+Last Edited: 12/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -11,35 +11,82 @@ class GUI:
     """
     This is the class containing the GUI
     """
-    def __init__(self, __parent, CURRENT_USER, *args):
+    def __init__(self, __parent, *args):
 
         # Main Frame
-        main_frame = Frame(__parent)
-        main_frame.grid(row=0, column=0)
-        title = Label(main_frame, text="Movie Recommendation System",
+        self.main_frame = Frame(__parent)
+        self.main_frame.grid(row=0, column=0)
+        title = Label(self.main_frame, text="Movie Recommendation System",
                       font = ("fixedsys", "14"))
         title.grid(row=0, column=0, columnspan=2, pady=5)
     
-        # Option Menu
-        movie_titles = return_unrated(CURRENT_USER)
-        movie_var = StringVar()
-        movie_var.set("Choose a Movie to Rate")
-        movie_options = OptionMenu(main_frame, movie_var, *movie_titles)
+        # Makes list of movies not rated by Current User
+        self.movie_titles = {}
+        for movie in movies:
+            self.movie_titles.update({movie.title:movie.id})
+            
+        # Option Menu        
+        self.movie_var = StringVar()
+        self.movie_id = StringVar()
+        self.movie_var.set("Choose a Movie to Rate")
+        movie_options = OptionMenu(self.main_frame, self.movie_var, *self.movie_titles.keys(),
+                                   command = self.movie_id_func)
         movie_options.grid(row=1, column=0,columnspan=2, pady=5)
 
         # Rating Buttons
-        like_button = Button(main_frame, text="Like", command = self.add_rating("like", movie_var))
+        like_button = Button(self.main_frame, text="Like", command = lambda: self.add_rating("5", self.movie_id.get()))
         like_button.grid(row=2, column=0, sticky=E+W)
-        dislike_button = Button(main_frame, text="Dislike", command = self.add_rating("dislike", movie_var))
+        dislike_button = Button(self.main_frame, text="Dislike", command = lambda: self.add_rating("3", self.movie_id.get()))
         dislike_button.grid(row=2, column=1, stick=E+W)
 
-        # Recommended Movies
+        # Recommendations
+        recommendation_title = Label(self.main_frame, text="Recommended Movies:",
+                                     font=("Arial", "11", "bold"))
+        recommendation_title.grid(row=3,column=0, columnspan=2, pady=5)
         
+    def movie_id_func(self, *args):
+        self.movie_id.set(self.movie_titles.get(self.movie_var.get()))
+
     def add_rating(self, rating, movie):
         """
         Adds movie rated by user to data base
         """
-        pass
+        #Adds users rating to CSV
+        import csv
+        with open('Ratings.csv', mode='a', encoding='utf-8', newline='') as rating_file:
+            rating_writer = csv.writer(rating_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            rating_writer.writerow(['0',movie,rating])
+
+        rating_file.close()
+
+        self.generate_movie()
+
+    def generate_movie(self):
+        """
+        Generates recommendations and instanciates all new data
+        """
+        import_ratings(LIKED_RATING)
+        
+        #Find all the users who have rated the movies watched by current user
+        similar_users = find_similar_users(CURRENT_USER)
+        
+        # Generate recommended movies
+        recommendations = generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users)
+
+        movie_labels = []
+        movie = StringVar()
+        
+        del movie_labels[:]
+        # Makes labels of recommendations
+        for i in range(len(recommendations)):
+            movie.set(recommendations[i])
+            print(movie.get())
+            movie_labels.append(Label(self.main_frame, textvariable= movie.get(),
+                                      font=("Arial", "10")))                    
+            movie_labels[i].grid(row=(i+4), column=0, columnspan=2, sticky=W)
+            self.main_frame.update()
+            i+=1
+            
 
 """*** Recommendation Engine ***"""
 
@@ -121,15 +168,17 @@ def import_movies():
                 
                 Movies(row[0], row[1], row[2], row[3])
 
+    csv_file.close()
+
 def import_ratings(LIKED_RATING):
     """
     Load ratings csv files to ratings and user classes
     """
     import csv
-    with open('Ratings.csv', encoding='utf-8') as csv_file:
+    with open('Ratings.csv', mode = 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
-
+        
         for row in csv_reader:
             if line_count == 0: #Header row
                 line_count += 1
@@ -157,6 +206,8 @@ def import_ratings(LIKED_RATING):
                         user.add_liked(row[1])
                     else:
                         user.add_disliked(row[1])
+
+    csv_file.close()
 
 def set_current_user(user_id):
     """
@@ -288,7 +339,7 @@ def possibility_index_func(CURRENT_USER, movie):
 
 """ *** GENERATING RECOMMENDATIONS *** """
 
-def return_similar_unrated(CURRENT_USER):
+def return_similar_unrated(CURRENT_USER, similar_users):
     """
     Returns a list of unrated movies
     """
@@ -302,7 +353,7 @@ def return_similar_unrated(CURRENT_USER):
     
     return similar_unrated_movies_ids
 
-def unrated_movie_possibilities(CURRENT_USER):
+def unrated_movie_possibilities(CURRENT_USER, similar_users):
     """
     Store all items the user has not rated with possibility index
     and return dictionary
@@ -310,28 +361,31 @@ def unrated_movie_possibilities(CURRENT_USER):
     # Compute possibilities of a user liking a movie
     recommended_movies = {}
 
-    for unrated in return_similar_unrated(CURRENT_USER):
+    for unrated in return_similar_unrated(CURRENT_USER, similar_users):
         possibility_index = possibility_index_func(CURRENT_USER, unrated)
         recommended_movies.update({unrated : possibility_index})
 
     return recommended_movies
 
-def generate_recommendations(CURRENT_USER, num_of_recommendations):
+def generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users):
     """
     Generate movie recommendations
     """
     # Get dictionary of unrated movies to be recommended
-    recommended_movies = unrated_movie_possibilities(CURRENT_USER)
+    recommended_movies = unrated_movie_possibilities(CURRENT_USER, similar_users)
 
     movie_counter = 0
-
+    recommended_movies_title = []
+    
     print("**Recommended Movies**\n")
     for key,value in sorted(recommended_movies.items(), key=lambda x:x[1], reverse = True):
         if movie_counter <= num_of_recommendations:
             for movie in movies:
                 if key == movie.id:
-                    print("Movie : {} \nPossibility Liked : {} \n".format(movie.title,value))
+                    recommended_movies_title.append(movie.title)
                     movie_counter +=1
+
+    return recommended_movies_title
         
 if __name__ == "__main__":
     LIKED_RATING = 4 # Movies rated this score and above are liked
@@ -339,28 +393,25 @@ if __name__ == "__main__":
     ratings = [] # List of all Ratings
     users = [] # List of all Users
 
-    # Import csv
+    # Import movie csv
     import_movies()
-    import_ratings(LIKED_RATING)
-    
-    # Set the current user and number of recommendations
-    current_user_id = "9"
-    num_of_recommendations = 4
-
-    # Store current user instance
-    CURRENT_USER = set_current_user(current_user_id)
-    
-    #Find all the users who have rated the movies watched by current user
-    similar_users = find_similar_users(CURRENT_USER)
-    
-    # Generate recommended movies
-    #generate_recommendations(CURRENT_USER, num_of_recommendations)
 
     # GUI
     root = Tk()
     root.title("Movie Rating System")
     root.geometry("+300+300")
-    GUI(root, CURRENT_USER)
+    GUI(root)
+    
+    # Set the current user and number of recommendations
+    current_user_id = "0"
+    num_of_recommendations = 4
+
+    # Store current user instance
+    User(current_user_id)
+    CURRENT_USER = set_current_user(current_user_id)
+    
+
+    
 
 
             
