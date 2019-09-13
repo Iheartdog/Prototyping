@@ -2,7 +2,7 @@
 Movie Rating System V2.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 12/09/2019
+Last Edited: 13/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -19,19 +19,9 @@ class GUI:
         title = Label(self.main_frame, text="Movie Recommendation System",
                       font = ("fixedsys", "14"))
         title.grid(row=0, column=0, columnspan=2, pady=5)
-    
-        # Makes list of movies not rated by Current User
-        self.movie_titles = {}
-        for movie in movies:
-            self.movie_titles.update({movie.title:movie.id})
-            
-        # Option Menu        
-        self.movie_var = StringVar()
-        self.movie_id = StringVar()
-        self.movie_var.set("Choose a Movie to Rate")
-        movie_options = OptionMenu(self.main_frame, self.movie_var, *self.movie_titles.keys(),
-                                   command = self.movie_id_func)
-        movie_options.grid(row=1, column=0,columnspan=2, pady=5)
+
+        # Makes movie options
+        self.movie_options_func()
 
         # Rating Buttons
         like_button = Button(self.main_frame, text="Like", command = lambda: self.add_rating("5", self.movie_id.get()))
@@ -44,6 +34,32 @@ class GUI:
                                      font=("Arial", "11", "bold"))
         recommendation_title.grid(row=3,column=0, columnspan=2, pady=5)
         
+    def movie_options_func(self,*args):
+        # Makes list of movies not rated by Current User
+        self.movie_titles = {}
+
+        exists = False
+        
+        for user in users:
+            if user.id == "0":
+                exists = True
+                for movie in return_unrated(CURRENT_USER):
+                    self.movie_titles.update({movie.title:movie.id})
+
+        if exists == False:
+            for movie in movies:
+                self.movie_titles.update({movie.title:movie.id})
+            
+        # Option Menu        
+        self.movie_var = StringVar()
+        self.movie_id = StringVar()
+        self.movie_var.set("Choose a Movie to Rate")
+        
+        self.movie_options = OptionMenu(self.main_frame, self.movie_var, *self.movie_titles.keys(),
+                                   command = self.movie_id_func)
+        self.movie_options.grid_forget()
+        self.movie_options.grid(row=1, column=0,columnspan=2, pady=5, sticky=EW)
+
     def movie_id_func(self, *args):
         self.movie_id.set(self.movie_titles.get(self.movie_var.get()))
 
@@ -81,11 +97,13 @@ class GUI:
         for i in range(len(recommendations)):
             movie.set(recommendations[i])
             print(movie.get())
-            movie_labels.append(Label(self.main_frame, textvariable= movie.get(),
+            movie_labels.append(Label(self.main_frame, text=movie.get(),
                                       font=("Arial", "10")))                    
-            movie_labels[i].grid(row=(i+4), column=0, columnspan=2, sticky=W)
+            movie_labels[i].grid(row=(i+4), column=0, columnspan=2, sticky=EW)
             self.main_frame.update()
             i+=1
+
+        self.movie_options_func()
             
 
 """*** Recommendation Engine ***"""
@@ -262,13 +280,13 @@ def return_unrated(CURRENT_USER):
     Returns a list of unrated movies
     """
     # Create a lsit to store unrated movies
-    unrated_movies_titles = []
+    unrated_movies = [] #_titles = []
     
     for movie in movies:
         if movie.id not in user_movies(CURRENT_USER):
-            unrated_movies_titles.append(movie.title)
+            unrated_movies.append(movie)#.title)
 
-    return unrated_movies_titles
+    return unrated_movies #_titles
 
 def find_similar_users(CURRENT_USER):
     """
