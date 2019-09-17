@@ -418,7 +418,7 @@ def genre_recommendations(sorted_movies, rated_movie, movie_rating):
                         movie_genre_score += 1
 
         movie_genre_score = movie_genre_score/(len(movie.genres))
-        genre_score_dict.update({movie.title : (movie_genre_score)})
+        genre_score_dict.update({movie.title : (movie_genre_score/5)})
     print(genre_score_dict)
 
     return genre_score_dict
