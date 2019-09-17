@@ -2,7 +2,7 @@
 Movie Rating System V3.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 17/09/2019
+Last Edited: 18/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -71,15 +71,20 @@ class GUI:
         """
         Adds movie rated by user to data base
         """
-        #Adds users rating to CSV
-        import csv
-        with open('Ratings.csv', mode='a', encoding='utf-8', newline='') as rating_file:
-            rating_writer = csv.writer(rating_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            rating_writer.writerow(['0',movie,rating])
+        # Checks user has selected movie
+        try:
+            if int(movie) > 0:
+                #Adds users rating to CSV
+                import csv
+                with open('Ratings.csv', mode='a', encoding='utf-8', newline='') as rating_file:
+                    rating_writer = csv.writer(rating_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    rating_writer.writerow(['0',movie,rating])
 
-        rating_file.close()
+                rating_file.close()
 
-        self.generate_movie(movie, rating)
+                self.generate_movie(movie, rating)
+        except:
+            pass
 
     def generate_movie(self, movie, rating):
         """
@@ -408,12 +413,15 @@ def genre_recommendations(sorted_movies, rated_movie, movie_rating):
         movie_genre_score = 0
         for genre in movie.genres:
             for rated_genre in rated_movie_object.genres:
-                if rated_genre == genre:
-                    movie_genre_score += 1
-                    
-        genre_score_dict.update({movie.title : (movie_genre_score/100)})
+                if movie_rating == "5":
+                    if rated_genre == genre:
+                        movie_genre_score += 1
 
-        return genre_score_dict
+        movie_genre_score = movie_genre_score/(len(movie.genres))
+        genre_score_dict.update({movie.title : (movie_genre_score)})
+    print(genre_score_dict)
+
+    return genre_score_dict
                          
 def generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users, rated_movie, movie_rating):
     """
@@ -424,25 +432,32 @@ def generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users
 
     movie_counter = 0
     recommended_movies_title = []
-    genre_recommended_movies = genre_recommendations(recommended_movies, rated_movie, movie_rating)
+    new_recommended_movies = {}
+
+    genre_recommended_movies = genre_recommendations(recommended_movies.items(), rated_movie, movie_rating)
 
     # Changes dictionary key to title
-    for key,value in recommended_movies:
+    for key,value in recommended_movies.items():
         for movie in movies:
             if key == movie.id:
                 recommended_movies.update({movie.title:value})
+                del recommended_movies[key]
 
-    print(recommended_movies)
-        
+    # Adds possibility index and genre score together
+    for movie_title, prob_index in recommended_movies.items():
+        for genre_title, genre_score in genre_recommended_movies.items():
+            new_value = 0
+            if movie_title == genre_title:
+                new_value = prob_index + genre_score
+                new_recommended_movies.update({movie_title:new_value})
 
-    recommended_movies_sorted = sorted(recommended_movies.items(), key=lambda x:x[1], reverse = True)
-    
-##    for key,value in genre_recommended_movies:
-##        if movie_counter <= num_of_recommendations:
-##            recommended_movies_title.append(key)
-##            movie_counter +=1
-##
-##    return recommended_movies_title
+    #Sorts new dictionary and chooses top 5 recommendedations
+    for key,value in sorted(new_recommended_movies.items(), key=lambda x:x[1], reverse = True):
+        if movie_counter <= num_of_recommendations:
+            recommended_movies_title.append(key)
+            movie_counter +=1
+
+    return recommended_movies_title
         
 if __name__ == "__main__":
     LIKED_RATING = 4 # Movies rated this score and above are liked
