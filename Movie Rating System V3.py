@@ -17,7 +17,7 @@ class GUI:
         self.main_frame = Frame(__parent)
         self.main_frame.grid(row=0, column=0)
         title = Label(self.main_frame, text="Movie Recommendation System",
-                      font = ("fixedsys", "14"))
+                      font = ("fixedsys", "18"))
         title.grid(row=0, column=0, columnspan=2, pady=5)
 
         # Makes movie options
@@ -418,8 +418,7 @@ def genre_recommendations(sorted_movies, rated_movie, movie_rating):
                         movie_genre_score += 1
 
         movie_genre_score = movie_genre_score/(len(movie.genres))
-        genre_score_dict.update({movie.title : (movie_genre_score/5)})
-    print(genre_score_dict)
+        genre_score_dict.update({movie.title : (movie_genre_score/10)})
 
     return genre_score_dict
                          
