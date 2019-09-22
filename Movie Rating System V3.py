@@ -2,7 +2,7 @@
 Movie Rating System V3.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 20/09/2019
+Last Edited: 23/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -32,9 +32,9 @@ class GUI:
         self.message = Label(self.main_frame, text = "Movie not found", font=("Arial", "9"), fg='red')
 
         # Rating Buttons
-        like_button = Button(self.rate_frame, text="Like", command = lambda: self.add_rating("5", self.movie_id.get()), width = 32)
+        like_button = Button(self.rate_frame, text="Like", command = lambda: self.add_rating("5", CURRENT_MOVIE.id), width = 32)
         like_button.grid(row=2, column=0, columnspan=3)
-        dislike_button = Button(self.rate_frame, text="Dislike", command = lambda: self.add_rating("3", self.movie_id.get()), width = 32)
+        dislike_button = Button(self.rate_frame, text="Dislike", command = lambda: self.add_rating("3", CURRENT_MOVIE.id), width = 32)
         dislike_button.grid(row=2, column=3, columnspan=3)
 
         # Recommendations
@@ -59,15 +59,17 @@ class GUI:
                 possible_entry_titles.append(movie.title)
 
         self.movie_var = StringVar()
-        self.movie_id = IntVar()
+        #self.movie_id = IntVar()
         self.movie_options = OptionMenu(self.main_frame, self.movie_var, *possible_entry_titles,
-                                   command = self.movie_id_func(self.movie_var.get()))
+                                   command = self.current_movie_func(self.movie_var.get()))
         self.movie_submit = Button(self.main_frame, text="Submit",
-                              command = lambda: self.submit_option(self.movie_var.get()))
+                              command = lambda: self.display(CURRENT_MOVIE))
         
         if len(possible_entry) == 1:
-            self.display_movie(possible_entry[0])
-            self.movie_id.set((possible_entry[0]).id)
+            set_current_movie(possible_entry[0])
+            #CURRENT_MOVIE = possible_entry[0]
+            self.display_movie(CURRENT_MOVIE)
+            #self.movie_id.set((possible_entry[0]).id)
                       
         elif len(possible_entry) == 0:
             self.message.grid(row=2, column=0, columnspan=6, sticky=EW)
@@ -76,23 +78,15 @@ class GUI:
             self.movie_options.grid(row=2, column=0, columnspan=5, sticky=EW)
             self.movie_submit.grid(row=2, column=5)
 
-    def movie_id_func(self, movie_var):
+    def current_movie_func(self, movie_var):
         """
         Sets movie id variable
         """
         for movie in movies:
             if movie_var == movie.title:
-                self.movie_id.set(movie.id)
-
-    def submit_option(self, movie_var):
-        """
-        Passes chosen option from drop down to the display function
-        """
-        for movie in movies:
-            if movie_var == movie.title:
-                self.display_movie(movie)
+                CURRENT_MOVIE = movie
                  
-    def display_movie(self, movie_object):
+    def display_movie(self, CURRENT_MOVIE):
         """
         Displays chosen movie and genres
         """
@@ -102,9 +96,9 @@ class GUI:
         
         # Label Variables
         movie_title_var = StringVar()
-        movie_title_var.set(movie_object.title)
+        movie_title_var.set(CURRENT_MOVIE.title)
         movie_genre_var = StringVar()
-        movie_genre_var.set(movie_object.genres)
+        movie_genre_var.set(CURRENT_MOVIE.genres)
 
         # Labels of movie titles and genres
         title_label = Label(self.rate_frame, text = "Movie Title:", font=("Arial","10", "bold"))
@@ -298,6 +292,12 @@ def set_current_user(user_id):
             CURRENT_USER = user
 
     return CURRENT_USER
+
+def set_current_movie(movie):
+    """
+    Sets CURRENT_MOVIE
+    """
+    CURRENT_MOVIE = movie
 
 """ *** FINDING SIMILAR USERS *** """
 
@@ -515,6 +515,9 @@ if __name__ == "__main__":
     ratings = [] # List of all Ratings
     users = [] # List of all Users
 
+    #Store current movie selected
+    CURRENT_MOVIE = None
+    
     # Import movie csv
     import_movies()
 
@@ -531,6 +534,8 @@ if __name__ == "__main__":
     # Store current user instance
     User(current_user_id)
     CURRENT_USER = set_current_user(current_user_id)
+
+    
     
 
     
