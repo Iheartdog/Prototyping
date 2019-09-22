@@ -2,7 +2,7 @@
 Movie Rating System V3.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 18/09/2019
+Last Edited: 20/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -16,76 +16,130 @@ class GUI:
         # Main Frame
         self.main_frame = Frame(__parent)
         self.main_frame.grid(row=0, column=0)
+        self.rate_frame = Frame(__parent)
         title = Label(self.main_frame, text="Movie Recommendation System",
                       font = ("fixedsys", "18"))
-        title.grid(row=0, column=0, columnspan=2, pady=5)
+        title.grid(row=0, column=0, columnspan=6, pady=5)
 
-        # Makes movie options
-        self.movie_options_func()
+        # Search Bar
+        self.movie_var = StringVar()
+        search_entry = Entry(self.main_frame, textvariable=self.movie_var)
+        search_entry.grid(row=1, column=0,columnspan=5, pady=5, sticky=EW)
+        search_label = Button(self.main_frame, text="Search", font=("Arial", "10"), command = lambda:self.find_movie(self.movie_var))
+        search_label.grid(row = 1, column = 5, sticky = EW)
+        
+        # Movie not found message
+        self.message = Label(self.main_frame, text = "Movie not found", font=("Arial", "9"), fg='red')
 
         # Rating Buttons
-        like_button = Button(self.main_frame, text="Like", command = lambda: self.add_rating("5", self.movie_id.get()))
-        like_button.grid(row=2, column=0, sticky=E+W)
-        dislike_button = Button(self.main_frame, text="Dislike", command = lambda: self.add_rating("3", self.movie_id.get()))
-        dislike_button.grid(row=2, column=1, stick=E+W)
+        like_button = Button(self.rate_frame, text="Like", command = lambda: self.add_rating("5", self.movie_id.get()), width = 32)
+        like_button.grid(row=2, column=0, columnspan=3)
+        dislike_button = Button(self.rate_frame, text="Dislike", command = lambda: self.add_rating("3", self.movie_id.get()), width = 32)
+        dislike_button.grid(row=2, column=3, columnspan=3)
 
         # Recommendations
-        recommendation_title = Label(self.main_frame, text="Recommended Movies:",
+        recommendation_title = Label(self.rate_frame, text="Recommended Movies:",
                                      font=("Arial", "11", "bold"))
-        recommendation_title.grid(row=3,column=0, columnspan=2, pady=5)
+        recommendation_title.grid(row=3,column=0, columnspan=6, pady=5)
 
-        self.top_movies = Label(self.main_frame, text="Shawshank Redemption, The \nRobots \nCars \nIsle of Dogs \nHarry Potter and the Philosopher's Stone",
+        self.top_movies = Label(self.rate_frame, text="Shawshank Redemption, The \nRobots \nCars \nIsle of Dogs \nHarry Potter and the Philosopher's Stone",
                            font=("Arial", "10"))
-        self.top_movies.grid(row=4, column=0, columnspan=2, sticky=EW)
-        
-    def movie_options_func(self,*args):
-        # Makes list of movies not rated by Current User
-        self.movie_titles = {}
+        self.top_movies.grid(row=4, column=0, columnspan=6, sticky=EW)
 
-        exists = False
-        
-        for user in users:
-            if user.id == "0":
-                exists = True
-                for movie in return_unrated(CURRENT_USER):
-                    self.movie_titles.update({movie.title:movie.id})
+    def find_movie(self, movie_title, *args):
+        """
+        Finds the movie from search entry
+        """
+        # Makes list of possible movie the user wanted
+        possible_entry = []
+        possible_entry_titles = []
+        for movie in movies:
+            if (movie_title.get()).lower() in (movie.title).lower():
+                possible_entry.append(movie)
+                possible_entry_titles.append(movie.title)
 
-        if exists == False:
-            for movie in movies:
-                self.movie_titles.update({movie.title:movie.id})
-            
-        # Option Menu        
         self.movie_var = StringVar()
-        self.movie_id = StringVar()
-        self.movie_var.set("Choose a Movie to Rate")
+        self.movie_id = IntVar()
+        self.movie_options = OptionMenu(self.main_frame, self.movie_var, *possible_entry_titles,
+                                   command = self.movie_id_func(self.movie_var.get()))
+        self.movie_submit = Button(self.main_frame, text="Submit",
+                              command = lambda: self.submit_option(self.movie_var.get()))
         
-        self.movie_options = OptionMenu(self.main_frame, self.movie_var, *self.movie_titles.keys(),
-                                   command = self.movie_id_func)
+        if len(possible_entry) == 1:
+            self.display_movie(possible_entry[0])
+            self.movie_id.set((possible_entry[0]).id)
+                      
+        elif len(possible_entry) == 0:
+            self.message.grid(row=2, column=0, columnspan=6, sticky=EW)
+
+        else:
+            self.movie_options.grid(row=2, column=0, columnspan=5, sticky=EW)
+            self.movie_submit.grid(row=2, column=5)
+
+    def movie_id_func(self, movie_var):
+        """
+        Sets movie id variable
+        """
+        for movie in movies:
+            if movie_var == movie.title:
+                self.movie_id.set(movie.id)
+
+    def submit_option(self, movie_var):
+        """
+        Passes chosen option from drop down to the display function
+        """
+        for movie in movies:
+            if movie_var == movie.title:
+                self.display_movie(movie)
+                 
+    def display_movie(self, movie_object):
+        """
+        Displays chosen movie and genres
+        """
+        self.message.grid_forget()
         self.movie_options.grid_forget()
-        self.movie_options.grid(row=1, column=0,columnspan=2, pady=5, sticky=EW)
+        self.movie_submit.grid_forget()
+        
+        # Label Variables
+        movie_title_var = StringVar()
+        movie_title_var.set(movie_object.title)
+        movie_genre_var = StringVar()
+        movie_genre_var.set(movie_object.genres)
 
-    def movie_id_func(self, *args):
-        self.movie_id.set(self.movie_titles.get(self.movie_var.get()))
+        # Labels of movie titles and genres
+        title_label = Label(self.rate_frame, text = "Movie Title:", font=("Arial","10", "bold"))
+        title_label.grid(row=0, column=0,columnspan=3, sticky=EW, pady = 5 )
+        movie_title_label = Label(self.rate_frame, textvariable = movie_title_var, font=("Arial","10"))
+        movie_title_label.grid(row=0, column=3, columnspan=3,sticky=EW)
+        genre_label = Label(self.rate_frame, text = "Genres:", font=("Arial","10", "bold"))
+        genre_label.grid(row=1, column=0, columnspan=3, sticky=EW, pady = 5)
+        movie_genre_label = Label(self.rate_frame, textvariable = movie_genre_var, font=("Arial","10"))
+        movie_genre_label.grid(row=1, column=3, columnspan=3,sticky=EW)
 
-    def add_rating(self, rating, movie):
+        self.rate_frame.grid(row=1,column=0)
+
+    def add_rating(self, rating, movie_id):
         """
         Adds movie rated by user to data base
         """
-        # Checks user has selected movie
-        try:
-            if int(movie) > 0:
-                #Adds users rating to CSV
-                import csv
-                with open('Ratings.csv', mode='a', encoding='utf-8', newline='') as rating_file:
-                    rating_writer = csv.writer(rating_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    rating_writer.writerow(['0',movie,rating])
+        exists = False
+            
+        # Checks user has selected movie or it has already been rated
+        for movie in user_movies(CURRENT_USER):
+            if movie_id.get() == movie:
+                exists = True
+                    
+        if int(movie_id) > 0 and exists == False:
+            #Adds users rating to CSV
+            import csv
+            with open('Ratings.csv', mode='a', encoding='utf-8', newline='') as rating_file:
+                rating_writer = csv.writer(rating_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                rating_writer.writerow(['0',movie_id,rating])
 
-                rating_file.close()
+            rating_file.close()
 
-                self.generate_movie(movie, rating)
-        except:
-            pass
-
+            self.generate_movie(movie_id, rating)
+       
     def generate_movie(self, movie, rating):
         """
         Generates recommendations and instanciates all new data
@@ -106,15 +160,12 @@ class GUI:
         # Makes labels of recommendations
         for i in range(len(recommendations)):
             movie.set(recommendations[i])
-            movie_labels.append(Label(self.main_frame, text=movie.get(),
+            movie_labels.append(Label(self.rate_frame, text=movie.get(),
                                       font=("Arial", "10")))                    
-            movie_labels[i].grid(row=(i+4), column=0, columnspan=2, sticky=EW)
+            movie_labels[i].grid(row=(i+4), column=0, columnspan=6, sticky=EW)
             self.main_frame.update()
             i+=1
-
-        self.movie_options_func()
             
-
 """*** Recommendation Engine ***"""
 
 class Movies:
