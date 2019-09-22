@@ -51,30 +51,31 @@ class GUI:
         Finds the movie from search entry
         """
         # Makes list of possible movie the user wanted
-        possible_entry = []
-        possible_entry_titles = []
-        for movie in movies:
-            if (movie_title.get()).lower() in (movie.title).lower():
-                possible_entry.append(movie)
-                possible_entry_titles.append(movie.title)
-
-        self.movie_var = StringVar()
-        #self.movie_id = IntVar()
-        self.movie_options = OptionMenu(self.main_frame, self.movie_var, *possible_entry_titles,
-                                   command = self.current_movie_func(self.movie_var.get()))
-        self.movie_submit = Button(self.main_frame, text="Submit",
-                              command = lambda: self.display(CURRENT_MOVIE))
+        self.possible_entry = []
+        self.possible_entry_titles = []
         
-        if len(possible_entry) == 1:
-            set_current_movie(possible_entry[0])
-            #CURRENT_MOVIE = possible_entry[0]
+        for movie in return_unrated(CURRENT_USER):
+            if (movie_title.get()).lower() in (movie.title).lower():
+                self.possible_entry.append(movie)
+                self.possible_entry_titles.append(movie.title)
+        
+        if len(self.possible_entry) == 1:
+            print("beep")
+            set_current_movie(self.possible_entry[0])
             self.display_movie(CURRENT_MOVIE)
-            #self.movie_id.set((possible_entry[0]).id)
+            print(self.possible_entry)
                       
-        elif len(possible_entry) == 0:
+        elif len(self.possible_entry) == 0:
+            print("bop")
             self.message.grid(row=2, column=0, columnspan=6, sticky=EW)
 
         else:
+            print("boo")
+            self.movie_selected = StringVar()
+            self.movie_options = OptionMenu(self.main_frame, self.movie_selected, *self.possible_entry_titles,
+                                            command = lambda x: self.current_movie_func(self.movie_selected.get()))
+            self.movie_submit = Button(self.main_frame, text="Submit",
+                                       command = lambda: self.display_movie(CURRENT_MOVIE))
             self.movie_options.grid(row=2, column=0, columnspan=5, sticky=EW)
             self.movie_submit.grid(row=2, column=5)
 
@@ -82,6 +83,7 @@ class GUI:
         """
         Sets movie id variable
         """
+        global CURRENT_MOVIE
         for movie in movies:
             if movie_var == movie.title:
                 CURRENT_MOVIE = movie
@@ -90,10 +92,15 @@ class GUI:
         """
         Displays chosen movie and genres
         """
-        self.message.grid_forget()
-        self.movie_options.grid_forget()
-        self.movie_submit.grid_forget()
-        
+        try:
+            self.message.grid_forget()
+            self.movie_options.grid_forget()
+            self.movie_submit.grid_forget()
+
+        except:
+            pass
+
+        print(CURRENT_MOVIE.title)
         # Label Variables
         movie_title_var = StringVar()
         movie_title_var.set(CURRENT_MOVIE.title)
@@ -120,7 +127,7 @@ class GUI:
             
         # Checks user has selected movie or it has already been rated
         for movie in user_movies(CURRENT_USER):
-            if movie_id.get() == movie:
+            if movie_id == movie:
                 exists = True
                     
         if int(movie_id) > 0 and exists == False:
@@ -297,6 +304,7 @@ def set_current_movie(movie):
     """
     Sets CURRENT_MOVIE
     """
+    global CURRENT_MOVIE
     CURRENT_MOVIE = movie
 
 """ *** FINDING SIMILAR USERS *** """
