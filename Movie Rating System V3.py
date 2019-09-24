@@ -2,7 +2,7 @@
 Movie Rating System V3.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 23/09/2019
+Last Edited: 25/09/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -29,22 +29,32 @@ class GUI:
         search_label.grid(row = 1, column = 5, sticky = EW)
         
         # Movie not found message
-        self.message = Label(self.main_frame, text = "Movie not found", font=("Arial", "9"), fg='red')
+        self.message = Label(self.main_frame, text = "Movie not found or already rated", font=("Arial", "9"), fg='red')
 
         # Rating Buttons
-        like_button = Button(self.rate_frame, text="Like", command = lambda: self.add_rating("5", CURRENT_MOVIE.id), width = 32)
+        like_button = Button(self.rate_frame, text="Like", command = lambda: self.add_rating("5", CURRENT_MOVIE.id),
+                             width = 32)
         like_button.grid(row=2, column=0, columnspan=3)
-        dislike_button = Button(self.rate_frame, text="Dislike", command = lambda: self.add_rating("3", CURRENT_MOVIE.id), width = 32)
+        dislike_button = Button(self.rate_frame, text="Dislike", command = lambda: self.add_rating("3", CURRENT_MOVIE.id),
+                                width = 32)
         dislike_button.grid(row=2, column=3, columnspan=3)
 
-        # Recommendations
+        # Recommendations labels
         recommendation_title = Label(self.rate_frame, text="Recommended Movies:",
                                      font=("Arial", "11", "bold"))
         recommendation_title.grid(row=3,column=0, columnspan=6, pady=5)
 
+        reco_movie_title = Label(self.rate_frame, text="Movie Title:",
+                                 font=("Arial", "10", "bold"))
+        reco_movie_title.grid(row=4, column=0, columnspan=3, pady=3)
+
+        reco_movie_title = Label(self.rate_frame, text="Genres:",
+                                 font=("Arial", "10", "bold"))
+        reco_movie_title.grid(row=4, column=3, columnspan=3, pady=3)
+
         self.top_movies = Label(self.rate_frame, text="Shawshank Redemption, The \nRobots \nCars \nIsle of Dogs \nHarry Potter and the Philosopher's Stone",
                            font=("Arial", "10"))
-        self.top_movies.grid(row=4, column=0, columnspan=6, sticky=EW)
+        self.top_movies.grid(row=5, column=0, columnspan=3, sticky=EW)
 
     def find_movie(self, movie_title, *args):
         """
@@ -60,17 +70,13 @@ class GUI:
                 self.possible_entry_titles.append(movie.title)
         
         if len(self.possible_entry) == 1:
-            print("beep")
             set_current_movie(self.possible_entry[0])
             self.display_movie(CURRENT_MOVIE)
-            print(self.possible_entry)
                       
         elif len(self.possible_entry) == 0:
-            print("bop")
             self.message.grid(row=2, column=0, columnspan=6, sticky=EW)
 
         else:
-            print("boo")
             self.movie_selected = StringVar()
             self.movie_options = OptionMenu(self.main_frame, self.movie_selected, *self.possible_entry_titles,
                                             command = lambda x: self.current_movie_func(self.movie_selected.get()))
@@ -100,7 +106,6 @@ class GUI:
         except:
             pass
 
-        print(CURRENT_MOVIE.title)
         # Label Variables
         movie_title_var = StringVar()
         movie_title_var.set(CURRENT_MOVIE.title)
@@ -151,21 +156,39 @@ class GUI:
         similar_users = find_similar_users(CURRENT_USER)
         
         # Generate recommended movies
-        recommendations = generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users, movie, rating)
-
+        recommendations, genres = generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users, movie, rating)
+        
         movie_labels = []
+        genre_labels = []
+        
         self.top_movies.grid_forget()
+        
         movie = StringVar()
+        genre = StringVar()
         
         del movie_labels[:]
-        # Makes labels of recommendations
+        del genre_labels[:]
+        
+        # Makes labels of movie recommendations
+        i = 0
         for i in range(len(recommendations)):
             movie.set(recommendations[i])
             movie_labels.append(Label(self.rate_frame, text=movie.get(),
                                       font=("Arial", "10")))                    
-            movie_labels[i].grid(row=(i+4), column=0, columnspan=6, sticky=EW)
+            movie_labels[i].grid(row=(i+5), column=0, columnspan=3, sticky=EW)
             self.main_frame.update()
             i+=1
+
+        i = 0
+        # Makes labels of movie genres
+        for i in range(len(genres)):
+            genre.set(genres[i])
+            genre_labels.append(Label(self.rate_frame, text=genre.get(),
+                                      font=("Arial", "10")))                    
+            genre_labels[i].grid(row=(i+5), column=3, columnspan=3, sticky=EW, padx=3)
+            self.main_frame.update()
+            i+=1
+        
             
 """*** Recommendation Engine ***"""
 
@@ -477,7 +500,7 @@ def genre_recommendations(sorted_movies, rated_movie, movie_rating):
                         movie_genre_score += 1
 
         movie_genre_score = movie_genre_score/(len(movie.genres))
-        genre_score_dict.update({movie.title : (movie_genre_score/10)})
+        genre_score_dict.update({movie : (movie_genre_score/10)})
 
     return genre_score_dict
                          
@@ -490,6 +513,7 @@ def generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users
 
     movie_counter = 0
     recommended_movies_title = []
+    recommended_movies_genres = []
     new_recommended_movies = {}
 
     genre_recommended_movies = genre_recommendations(recommended_movies.items(), rated_movie, movie_rating)
@@ -505,7 +529,7 @@ def generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users
     for movie_title, prob_index in recommended_movies.items():
         for genre_title, genre_score in genre_recommended_movies.items():
             new_value = 0
-            if movie_title == genre_title:
+            if movie_title == genre_title.title:
                 new_value = prob_index + genre_score
                 new_recommended_movies.update({movie_title:new_value})
 
@@ -513,9 +537,14 @@ def generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users
     for key,value in sorted(new_recommended_movies.items(), key=lambda x:x[1], reverse = True):
         if movie_counter <= num_of_recommendations:
             recommended_movies_title.append(key)
+            #print(value)
             movie_counter +=1
+            for genre_object in genre_recommended_movies.keys():
+                if genre_object.title == key:
+                    recommended_movies_genres.append(genre_object.genres)
+            
 
-    return recommended_movies_title
+    return recommended_movies_title, recommended_movies_genres
         
 if __name__ == "__main__":
     LIKED_RATING = 4 # Movies rated this score and above are liked
