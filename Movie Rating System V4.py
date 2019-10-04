@@ -13,7 +13,7 @@ class GUI:
     """
     def __init__(self, __parent, *args):
 
-        # Main Frame
+        # Create Frames
         self.main_frame = Frame(__parent)
         self.main_frame.grid(row=0, column=0)
         self.rate_frame = Frame(__parent)
@@ -40,8 +40,7 @@ class GUI:
 
         self.genre_options_title = Label(self.rate_frame, text = "Sort by Genre:",
                                          font=("Arial", "10", "bold"))
-        self.genre_options = OptionMenu(self.rate_frame, self.genre_var, *self.genre_options,
-                                        command = lambda x:self.genre_sort(self.genre_var.get()))
+        self.genre_options = OptionMenu(self.rate_frame, self.genre_var, *self.genre_options)
         
         # Movie not found message
         self.message = Label(self.main_frame, text = "Movie not found or already rated",
@@ -193,15 +192,6 @@ class GUI:
         
         # Generate recommended movies
         recommendations, genres = generate_recommendations(CURRENT_USER, num_of_recommendations, similar_users, movie, rating, self.genre_var.get())
-
-        # Calls display_generate func
-        self.display_generate(recommendations, genres)
-        
-        
-    def display_generate(self, recommendations, genres):
-        """
-        Makes the labels for the movies from the generate movie function
-        """
         
         self.movie_labels = []
         self.genre_labels = []
@@ -212,28 +202,29 @@ class GUI:
         movie = StringVar()
         genre = StringVar()
 
-        # Forgets all movie labels
-        try:
-            i=0
-            for i in range(5):
-                self.movie_labels[i].grid_forget()
-                self.genre_labels[i].grid_forget()
-                i+=1
-        except:
-            pass
-
         # Displays genre options
         self.genre_options_title.grid(row=4, column=0, padx=5, pady=3)
         self.genre_options.grid(row=5, column=0, padx=5)
+
+         # Forgets all movie labels
+        try:
+            i=0
+            for i in range(5):
+                self.movie_labels[i].grid_destroy()
+                self.genre_labels[i].grid_destroy()
+                i+=1
+        except:
+            pass
         
         # Makes labels of movie recommendations
         i = 0
         for i in range(len(recommendations)):
+            # Makes new movie label
             movie.set(recommendations[i])
             self.movie_labels.append(Label(self.rate_frame, text=movie.get(),
                                       font=("Arial", "10")))                    
             self.movie_labels[i].grid(row=(i+6), column=2, columnspan=2, sticky=EW)
-            self.main_frame.update()
+            self.rate_frame.update()
             i+=1
 
         i = 0
@@ -246,15 +237,39 @@ class GUI:
             self.main_frame.update()
             i+=1
 
-    def genre_sort(self, genre):
-        """
-        Displays movies based on chosen genre
-        """
-        #Find all the users who have rated the movies watched by current user
-        similar_users = find_similar_users(CURRENT_USER)
-        
-        # Get dictionary of unrated movies to be recommended
-        recommended_movies = unrated_movie_possibilities(CURRENT_USER, similar_users)
+##    def genre_sort(self, genre):
+##        """
+##        Displays movies based on chosen genre
+##        """
+##        #Find all the users who have rated the movies watched by current user
+##        similar_users = find_similar_users(CURRENT_USER)
+##        
+##        # Get dictionary of unrated movies to be recommended
+##        recommended_movies = unrated_movie_possibilities(CURRENT_USER, similar_users)
+##        recommended_movies_genres = []
+##        recommended_movies_titles = []
+##
+##        # Changes dictionary key to title
+##        for key,value in recommended_movies.items():
+##            for movie in movies:
+##                if key == movie.id:
+##                    recommended_movies.update({movie.title:value})
+##                    del recommended_movies[key]
+##
+##        movie_counter = 0
+##        
+##        #Sorts new dictionary and chooses top 5 recommendedations
+##        for key,value in sorted(recommended_movies.items(), key=lambda x:x[1], reverse = True):
+##            if movie_counter <= num_of_recommendations:
+##                if genre == "Any Genre":
+##                    recommended_movies_title.append(key)
+##                    movie_counter +=1
+##                    for movie in movies:
+##                        if movie.title == recommended_movies_titles[movie_counter-1]:
+##                            recommended_movies_genres.append(movie.genres)
+##
+##        print(recommended_movies_titles)
+##        print(recommended_movies_genres)
                                     
 """*** Recommendation Engine ***"""
 
