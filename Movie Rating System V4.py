@@ -2,7 +2,7 @@
 Movie Rating System V4.py
 Author: Rachel Given
 Date Created: 28/08/2019
-Last Edited: 04/10/2019
+Last Edited: 15/10/2019
 Make a system where a user can be recommended movies based on movie ratings 
 """
 from tkinter import *
@@ -206,70 +206,36 @@ class GUI:
         self.genre_options_title.grid(row=4, column=0, padx=5, pady=3)
         self.genre_options.grid(row=5, column=0, padx=5)
 
-         # Forgets all movie labels
-        try:
-            i=0
-            for i in range(5):
-                self.movie_labels[i].grid_destroy()
-                self.genre_labels[i].grid_destroy()
-                i+=1
-        except:
-            pass
-        
         # Makes labels of movie recommendations
         i = 0
-        for i in range(len(recommendations)):
+        for i in range(5):
             # Makes new movie label
-            movie.set(recommendations[i])
-            self.movie_labels.append(Label(self.rate_frame, text=movie.get(),
-                                      font=("Arial", "10")))                    
-            self.movie_labels[i].grid(row=(i+6), column=2, columnspan=2, sticky=EW)
-            self.rate_frame.update()
-            i+=1
+            if i < (len(recommendations)):
+                # Sets title of movie and genre labels
+                movie.set(recommendations[i])
+                self.movie_labels.append(Label(self.rate_frame, text=movie.get(),
+                                        font=("Arial", "10")))                    
+                self.movie_labels[i].grid(row=(i+6), column=2, columnspan=2, sticky=EW)
 
-        i = 0
-        # Makes labels of movie genres
-        for i in range(len(genres)):
-            genre.set(genres[i])
-            self.genre_labels.append(Label(self.rate_frame, text=genre.get(),
-                                      font=("Arial", "10")))                    
-            self.genre_labels[i].grid(row=(i+6), column=5, columnspan=3, sticky=EW, padx=3)
-            self.main_frame.update()
-            i+=1
-
-##    def genre_sort(self, genre):
-##        """
-##        Displays movies based on chosen genre
-##        """
-##        #Find all the users who have rated the movies watched by current user
-##        similar_users = find_similar_users(CURRENT_USER)
-##        
-##        # Get dictionary of unrated movies to be recommended
-##        recommended_movies = unrated_movie_possibilities(CURRENT_USER, similar_users)
-##        recommended_movies_genres = []
-##        recommended_movies_titles = []
-##
-##        # Changes dictionary key to title
-##        for key,value in recommended_movies.items():
-##            for movie in movies:
-##                if key == movie.id:
-##                    recommended_movies.update({movie.title:value})
-##                    del recommended_movies[key]
-##
-##        movie_counter = 0
-##        
-##        #Sorts new dictionary and chooses top 5 recommendedations
-##        for key,value in sorted(recommended_movies.items(), key=lambda x:x[1], reverse = True):
-##            if movie_counter <= num_of_recommendations:
-##                if genre == "Any Genre":
-##                    recommended_movies_title.append(key)
-##                    movie_counter +=1
-##                    for movie in movies:
-##                        if movie.title == recommended_movies_titles[movie_counter-1]:
-##                            recommended_movies_genres.append(movie.genres)
-##
-##        print(recommended_movies_titles)
-##        print(recommended_movies_genres)
+                genre.set(genres[i])
+                self.genre_labels.append(Label(self.rate_frame, text=genre.get(),
+                                        font=("Arial", "10")))                    
+                self.genre_labels[i].grid(row=(i+6), column=5, columnspan=3, sticky=EW, padx=3)
+                
+                self.rate_frame.update()
+            else:
+                # Sets blank labels when when less than 5 recommendations
+                movie.set("")  
+                self.movie_labels.append(Label(self.rate_frame, text=movie.get(),
+                                        font=("Arial", "10")))                    
+                self.movie_labels[i].grid(row=(i+6), column=2, columnspan=2, sticky=EW)
+                
+                genre.set("")
+                self.genre_labels.append(Label(self.rate_frame, text=genre.get(),
+                                        font=("Arial", "10")))                    
+                self.genre_labels[i].grid(row=(i+6), column=5, columnspan=3, sticky=EW, padx=3)
+                
+                self.rate_frame.update()
                                     
 """*** Recommendation Engine ***"""
 
